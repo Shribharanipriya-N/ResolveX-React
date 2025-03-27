@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { AiOutlineMail, AiOutlineLock } from "react-icons/ai";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const Login = () => {
@@ -74,9 +75,9 @@ const Login = () => {
 
         <p className="text-gray-400 text-center mt-4">
           Don't have an account?{" "}
-          <a href="#" className="text-red-500 hover:underline">
+          <Link to="/signup" className="text-red-500 hover:underline">
             Sign Up
-          </a>
+          </Link>
         </p>
       </div>
     </div>

@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom"; // Import Link
 import { AiOutlineMail, AiOutlineLock, AiOutlineUser } from "react-icons/ai";
 import { toast } from "react-toastify";
 import axios from "axios";
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,7 +23,9 @@ const Signup = () => {
       });
 
       console.log(response);
-      toast.success(" successful!", { position: "top-right" });
+      toast.success("Signup successful!", { position: "top-right" });
+
+      navigate("/login");
     } catch (error) {
       console.log(error);
       if (error.response) {
@@ -87,9 +91,9 @@ const Signup = () => {
 
         <p className="text-gray-400 text-center mt-4">
           Already have an account?{" "}
-          <a href="#" className="text-red-500 hover:underline">
+          <Link to="/" className="text-red-500 hover:underline">
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>
