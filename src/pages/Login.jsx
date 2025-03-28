@@ -1,12 +1,13 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { AiOutlineMail, AiOutlineLock } from "react-icons/ai";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,11 +19,14 @@ const Login = () => {
           password,
         },
       });
-      localStorage.setItem({
-        token: response.data.token,
-        email: response.data.email,
-      });
+      localStorage.clear();
+      console.log(response.data);
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("email", response.data.email);
+
       toast.success("Login successful!", { position: "top-right" });
+
+      navigate("/dashboard/all");
     } catch (error) {
       if (error.response) {
         toast.error(error.response.data, { position: "top-right" });
@@ -36,7 +40,7 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-black">
-      <div className="w-full h-[400px] max-w-md p-8 bg-gray-900  flex flex-col justify-around rounded-lg shadow-md shadow-red-500">
+      <div className="w-full h-[400px] max-w-md p-8 bg-gray-900 flex flex-col justify-around rounded-lg shadow-md shadow-red-500">
         <h2 className="text-2xl font-bold text-red-500 text-center mb-6">
           Login
         </h2>
