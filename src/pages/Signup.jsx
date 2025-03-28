@@ -22,10 +22,10 @@ const Signup = () => {
         },
       });
 
-      console.log(response);
-      toast.success("Signup successful!", { position: "top-right" });
-
-      navigate("/login");
+      toast.success("Signup successful! Please login.", {
+        position: "top-right",
+      });
+      navigate("/");
     } catch (error) {
       console.log(error);
       if (error.response) {
