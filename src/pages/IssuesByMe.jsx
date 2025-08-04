@@ -71,8 +71,12 @@ const IssuesByMe = () => {
     fetchIssues();
   }, [userId]);
 
-  const handleRowClick = (id) => {
-    navigate(`/issue/${id}`);
+  const handleRowClick = (issueId) => {
+    if (!issueId) {
+      console.error("Invalid issueId:", issueId);
+      return;
+    }
+    navigate(`/dashboard/issue/${issueId}`);
   };
 
   const toggleStar = (e, id) => {
@@ -91,18 +95,17 @@ const IssuesByMe = () => {
       {loading ? (
         <p className="text-center text-gray-400">Loading issues...</p>
       ) : issues.length === 0 ? (
-        <p className="text-center text-gray-400 mt-4">No issues found.</p>
+        <p className="text-center text-gray-400 mt-4">
+          No issues created by you.
+        </p>
       ) : (
         <IssueTable
           issues={issues}
-          toggleStar={toggleStar}
           onRowClick={handleRowClick}
           showStatus={true}
           showResolvedAt={true}
         />
       )}
-
-      {message && <p className="text-center text-red-500">{message}</p>}
     </div>
   );
 };

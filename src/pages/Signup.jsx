@@ -13,11 +13,12 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      console.log(email, name, password);
       const response = await axios.post("http://localhost:8080/signup", null, {
         headers: {
           "Content-Type": "application/json",
           email,
-          name,
+          username: name,
           password,
         },
       });

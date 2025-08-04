@@ -11,7 +11,6 @@ const IssueTable = ({
   issues,
   showStatus = false,
   showResolvedAt = false,
-  toggleStar,
   onRowClick,
   showDropdown = false,
   onStatusChange,
@@ -56,9 +55,7 @@ const IssueTable = ({
           <tr
             key={issue.issueId}
             onClick={() => {
-              if (location.pathname === "/dashboard/all") {
-                onRowClick(issue.issueId);
-              }
+              onRowClick(issue.issueId);
             }}
             className="border-b border-gray-700 hover:bg-gray-700 transition cursor-pointer"
           >
@@ -100,7 +97,7 @@ const IssueTable = ({
               <td className="p-4">
                 {showDropdown ? (
                   <select
-                    value={issue.status ? "Resolved" : "Unresolved"} // ✅ Ensure boolean values are converted
+                    value={issue.status ? "Resolved" : "Unresolved"}
                     onChange={(e) => onStatusChange(e, issue.issueId)}
                     onClick={(e) => e.stopPropagation()}
                     className="bg-gray-700 text-white rounded p-1 cursor-pointer"

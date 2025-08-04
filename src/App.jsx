@@ -10,6 +10,7 @@ import Logout from "./pages/Logout";
 import Signup from "./pages/Signup";
 import IssueDetailAll from "./pages/IssueDetailAll";
 import Login from "./pages/Login";
+import AddComment from "./pages/AddComment";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="reports" element={<Reports />} />
           <Route path="logout" element={<Logout />} />
           <Route path="issue/:id" element={<IssueDetailAll />} />
+          <Route path="comments/:id" element={<AddComment />} />
         </Route>
       </Routes>
     </Router>

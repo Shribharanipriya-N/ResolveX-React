@@ -13,7 +13,6 @@ const IssuesToMe = () => {
   const token = localStorage.getItem("token");
   const email = localStorage.getItem("email");
 
-  // Fetch user ID
   useEffect(() => {
     const fetchUserId = async () => {
       if (!email || !token) {
@@ -43,7 +42,6 @@ const IssuesToMe = () => {
     fetchUserId();
   }, [email, token]);
 
-  // Fetch issues assigned to the user
   useEffect(() => {
     if (!userId) return;
 
@@ -71,12 +69,14 @@ const IssuesToMe = () => {
     fetchIssues();
   }, [userId]);
 
-  // Navigate to issue details
-  const handleRowClick = (id) => {
-    navigate(`/issue/${id}`);
+  const handleRowClick = (issueId) => {
+    if (!issueId) {
+      console.error("Invalid issueId:", issueId);
+      return;
+    }
+    navigate(`/dashboard/issue/${issueId}`);
   };
 
-  // Toggle starring an issue
   const toggleStar = async (e, id) => {
     e.stopPropagation();
 
@@ -156,8 +156,6 @@ const IssuesToMe = () => {
           onStatusChange={handleStatusChange}
         />
       )}
-
-      {message && <p className="text-center text-red-500">{message}</p>}
     </div>
   );
 };

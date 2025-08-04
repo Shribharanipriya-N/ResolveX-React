@@ -1,49 +1,127 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaBug, FaCalendarAlt, FaCommentDots, FaPlus } from "react-icons/fa";
-import CommentPopup from "../components/CommentPopup";
+import axios from "axios";
 
 const IssueDetailAll = () => {
-  const [showPopup, setShowPopup] = useState(false);
+  const token = localStorage.getItem("token");
+  const email = localStorage.getItem("email");
+  const { id } = useParams();
+  const [userId, setUserId] = useState(null);
+  const navigate = useNavigate();
 
-  const issue = {
-    id: 1,
-    name: "Bug in Login Functionality",
-    description:
-      "Users are unable to log in with valid credentials. The issue occurs after the latest update.",
-    createdAt: "2025-03-25T14:30:00Z",
+  // const [showPopup, setShowPopup] = useState(false);
+  const [issue, setIssue] = useState(null);
+  const [error, setError] = useState("");
+  const [comments, setComments] = useState([]);
+
+  useEffect(() => {
+    const fetchIssue = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8080/issue/${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+            email: email,
+          },
+        });
+        setIssue(res.data);
+      } catch (err) {
+        console.error("Error fetching issue:", err);
+        setError("Failed to load issue details.");
+      }
+    };
+    const fetchComments = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8080/comments/${id}`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+            email: email,
+          },
+        });
+        setComments(res.data);
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+        setError("Failed to load issue comments.");
+      }
+    };
+    fetchIssue();
+    fetchComments();
+  }, [id, token, email]);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const res = await axios.get("http://localhost:8080/user/id", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+            email: email,
+          },
+        });
+        if (res.status === 200) {
+          setUserId(res.data);
+        }
+      } catch (err) {
+        console.error("Error fetching user ID:", err);
+      }
+    };
+
+    fetchUserId();
+  }, [token, email]);
+
+  const handleCommentSubmit = async (commentText) => {
+    try {
+      if (!userId) {
+        alert("Please wait — fetching user information...");
+        return;
+      }
+
+      await axios.post(
+        "http://localhost:8080/comments",
+        {
+          user: { userId: userId },
+          issue: { issueId: id },
+          content: commentText,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+            email: email,
+          },
+        }
+      );
+
+      const res = await axios.get(`http://localhost:8080/comments/${id}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token,
+          email: email,
+        },
+      });
+      setComments(res.data);
+      setShowPopup(false);
+    } catch (err) {
+      console.error("Error adding comment:", err);
+      setError("Failed to add comment.");
+    }
   };
 
-  const [comments, setComments] = useState([
-    {
-      id: 1,
-      text: "I checked the API logs, seems like a token issue.",
-      createdAt: "2025-03-26T10:00:00Z",
-    },
-    {
-      id: 2,
-      text: "Might be related to session storage, will debug it.",
-      createdAt: "2025-03-26T12:45:00Z",
-    },
-    {
-      id: 3,
-      text: "Session expiry might be causing this. Need to verify.",
-      createdAt: "2025-03-26T14:00:00Z",
-    },
-    {
-      id: 4,
-      text: "Backend JWT token might be invalid after refresh.",
-      createdAt: "2025-03-26T15:30:00Z",
-    },
-  ]);
+  if (error) {
+    return <div className="text-red-500 text-center mt-10">{error}</div>;
+  }
 
-  const handleCommentSubmit = (commentText) => {
-    const newComment = {
-      id: comments.length + 1,
-      text: commentText,
-      createdAt: new Date().toISOString(),
-    };
-    setComments([...comments, newComment]);
-    setShowPopup(false);
+  if (!issue) {
+    return <div className="text-gray-400 text-center mt-10">Loading...</div>;
+  }
+  if (!comments) {
+    return <div className="text-gray-400 text-center mt-10">Loading...</div>;
+  }
+
+  const handleCommentClick = () => {
+    navigate(`/dashboard/comments/${id}`);
   };
 
   return (
@@ -54,7 +132,7 @@ const IssueDetailAll = () => {
       >
         <div className="flex items-center gap-3 mb-3">
           <FaBug className="text-red-500 text-3xl" />
-          <h1 className="text-3xl font-bold text-red-500">{issue.name}</h1>
+          <h1 className="text-3xl font-bold text-red-500">{issue.issueName}</h1>
         </div>
 
         <p className="text-gray-300 text-lg mb-4">{issue.description}</p>
@@ -64,7 +142,11 @@ const IssueDetailAll = () => {
           <p className="text-sm">
             Created At:{" "}
             <span className="text-gray-300">
-              {new Date(issue.createdAt).toLocaleString()}
+              {new Date(issue.createdAt).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "long",
+                day: "2-digit",
+              })}
             </span>
           </p>
         </div>
@@ -83,12 +165,19 @@ const IssueDetailAll = () => {
               <ul className="space-y-3">
                 {comments.map((comment) => (
                   <li
-                    key={comment.id}
+                    key={comment.commentId}
                     className="border-b border-gray-700 pb-2"
                   >
-                    <p className="text-gray-300">{comment.text}</p>
+                    <p className="text-gray-300">{comment.content}</p>
                     <span className="text-xs text-gray-500">
-                      {new Date(comment.createdAt).toLocaleString()}
+                      {new Date(comment.commentedAt).toLocaleDateString(
+                        "en-US",
+                        {
+                          year: "numeric",
+                          month: "long",
+                          day: "2-digit",
+                        }
+                      )}
                     </span>
                   </li>
                 ))}
@@ -99,24 +188,23 @@ const IssueDetailAll = () => {
           </div>
         </div>
 
-        {/* Add Comment Button */}
         <button
-          onClick={() => setShowPopup(true)}
-          className="flex items-center gap-2 px-5 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition self-start"
+          onClick={handleCommentClick}
+          className="flex items-center gap-2 px-5 py-3 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition self-start mt-4"
         >
           <FaPlus className="text-lg" />
           Add Comment
         </button>
       </div>
 
-      {showPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+      {/* {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
           <CommentPopup
             onSubmit={handleCommentSubmit}
             onClose={() => setShowPopup(false)}
           />
         </div>
-      )}
+      )} */}
     </div>
   );
 };

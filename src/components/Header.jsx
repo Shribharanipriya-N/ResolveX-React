@@ -1,13 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { FaUserCircle, FaBars, FaSearch } from "react-icons/fa";
 
-const Header = () => {
+const Header = ({ email, token }) => {
   const [showUser, setShowUser] = useState(false);
+  const [userId, setUserId] = useState(null);
+  const [user, setUser] = useState({ name: "", email: "" });
+  const [message, setMessage] = useState("");
 
-  const user = {
-    name: "John Doe",
-    email: "johndoe@example.com",
-  };
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        if (!email || !token) {
+          setMessage("User is not authenticated");
+          return;
+        }
+
+        const response = await axios.get("http://localhost:8080/user/id", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+            email: email,
+          },
+        });
+
+        if (response.status === 200) {
+          setUserId(response.data);
+          fetchUserDetails(response.data);
+        } else {
+          setMessage("Failed to fetch user ID");
+        }
+      } catch (error) {
+        console.error(error);
+        setMessage("Error fetching user ID");
+      }
+    };
+
+    const fetchUserDetails = async (id) => {
+      try {
+        const response = await axios.get("http://localhost:8080/user", {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token,
+            email: email,
+            id: id,
+          },
+        });
+        if (response.status === 200) {
+          setUser(response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+      }
+    };
+
+    fetchUserId();
+  }, [email, token]);
 
   return (
     <header className="flex items-center justify-between bg-gray-900 text-white px-6 py-4 relative">
@@ -35,9 +83,9 @@ const Header = () => {
         </button>
 
         {showUser && (
-          <div className="absolute right-0 mt-2 w-60 h-30 flex flex-col items-center justify-center gap-2  bg-gray-900 text-white p-4 rounded-lg shadow-xl border border-gray-700">
-            <p className="font-semibold text-red-400 pd-2">{user.name}</p>
-            <p className="text-sm text-gray-400 pd-2">{user.email}</p>
+          <div className="absolute right-0 mt-2 w-60 flex flex-col items-center justify-center gap-2 bg-gray-900 text-white p-4 rounded-lg shadow-xl border border-gray-700">
+            <p className="font-semibold text-red-400">{user.name}</p>
+            <p className="text-sm text-gray-400">{user.email}</p>
           </div>
         )}
       </div>
