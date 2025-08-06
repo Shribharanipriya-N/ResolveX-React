@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import IssueTable from "../components/IssueTable";
+import { useSelector } from "react-redux";
 
 const IssuesToMe = () => {
+  const starredIds = useSelector((state) => state.starred.issueIds);
   const navigate = useNavigate();
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,11 @@ const IssuesToMe = () => {
           }
         );
 
-        setIssues(response.data);
+        const issuesWithStars = response.data.map((issue) => ({
+          ...issue,
+          starred: starredIds.includes(issue.issueId),
+        }));
+        setIssues(issuesWithStars);
       } catch (error) {
         console.error(error);
         setMessage("Failed to fetch issues.");
@@ -67,7 +73,7 @@ const IssuesToMe = () => {
     };
 
     fetchIssues();
-  }, [userId]);
+  }, [userId, starredIds]);
 
   const handleRowClick = (issueId) => {
     if (!issueId) {
@@ -75,31 +81,6 @@ const IssuesToMe = () => {
       return;
     }
     navigate(`/dashboard/issue/${issueId}`);
-  };
-
-  const toggleStar = async (e, id) => {
-    e.stopPropagation();
-
-    try {
-      await axios.post(
-        `http://localhost:8080/issues/star/${id}`,
-        {},
-        {
-          headers: {
-            Authorization: token,
-            email: email,
-          },
-        }
-      );
-
-      setIssues((prev) =>
-        prev.map((issue) =>
-          issue.id === id ? { ...issue, starred: !issue.starred } : issue
-        )
-      );
-    } catch (error) {
-      console.error("Error toggling star:", error);
-    }
   };
 
   const handleStatusChange = async (e, issueId) => {
@@ -150,7 +131,6 @@ const IssuesToMe = () => {
           issues={issues}
           showStatus={true}
           showResolvedAt={true}
-          toggleStar={toggleStar}
           onRowClick={handleRowClick}
           showDropdown={true}
           onStatusChange={handleStatusChange}
