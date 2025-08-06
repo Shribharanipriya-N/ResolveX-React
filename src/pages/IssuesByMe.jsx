@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import IssueTable from "../components/IssueTable";
+import { useSelector } from "react-redux";
 
 const IssuesByMe = () => {
+  const starredIds = useSelector((state) => state.starred.issueIds);
   const [issues, setIssues] = useState([]);
   const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -59,8 +61,11 @@ const IssuesByMe = () => {
           }
         );
 
-        console.log(response.data);
-        setIssues(response.data);
+        const issuesWithStars = response.data.map((issue) => ({
+          ...issue,
+          starred: starredIds.includes(issue.issueId),
+        }));
+        setIssues(issuesWithStars);
       } catch (err) {
         setMessage("Failed to fetch issues.");
       } finally {
@@ -69,7 +74,7 @@ const IssuesByMe = () => {
     };
 
     fetchIssues();
-  }, [userId]);
+  }, [userId, starredIds]);
 
   const handleRowClick = (issueId) => {
     if (!issueId) {
@@ -77,15 +82,6 @@ const IssuesByMe = () => {
       return;
     }
     navigate(`/dashboard/issue/${issueId}`);
-  };
-
-  const toggleStar = (e, id) => {
-    e.stopPropagation();
-    setIssues((prev) =>
-      prev.map((issue) =>
-        issue.id === id ? { ...issue, starred: !issue.starred } : issue
-      )
-    );
   };
 
   return (

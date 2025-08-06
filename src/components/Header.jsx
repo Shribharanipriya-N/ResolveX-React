@@ -65,12 +65,12 @@ const Header = ({ email, token }) => {
 
       <div className="flex flex-col items-center flex-1 relative">
         <div className="relative w-72">
-          <input
+          {/* <input
             type="text"
             placeholder="Search issues..."
             className="p-2 pl-10 w-full rounded-full bg-gray-800 text-white border border-gray-700 focus:border-red-500 focus:ring-red-500 text-sm outline-none"
           />
-          <FaSearch className="absolute left-3 top-2.5 text-gray-400" />
+          <FaSearch className="absolute left-3 top-2.5 text-gray-400" /> */}
         </div>
       </div>
 

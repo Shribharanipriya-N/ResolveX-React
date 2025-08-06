@@ -1,13 +1,17 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AiOutlineMail, AiOutlineLock } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useDispatch } from "react-redux";
+import { fetchStarredIssues } from "../redux/starredSlice";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [userId, setUserId] = useState(null);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,14 +23,13 @@ const Login = () => {
           password,
         },
       });
+
       localStorage.clear();
-      console.log(response.data);
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("email", response.data.email);
-
       toast.success("Login successful!", { position: "top-right" });
 
-      navigate("/dashboard/all");
+      fetchAndSetUserId(response.data.token, response.data.email);
     } catch (error) {
       if (error.response) {
         toast.error(error.response.data, { position: "top-right" });
@@ -35,6 +38,21 @@ const Login = () => {
           position: "top-right",
         });
       }
+    }
+  };
+
+  // 2. Fetch User ID and then starred issues
+  const fetchAndSetUserId = async (token, email) => {
+    try {
+      const res = await fetch("http://localhost:8080/user/id", {
+        headers: { Authorization: token, email },
+      });
+      const id = await res.json();
+      setUserId(id);
+      dispatch(fetchStarredIssues({ userId: id, token, email }));
+      navigate("/dashboard/all");
+    } catch (err) {
+      toast.error("Failed to fetch user ID", { position: "top-right" });
     }
   };
 

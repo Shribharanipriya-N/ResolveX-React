@@ -1,4 +1,3 @@
-import { useLocation } from "react-router-dom";
 import {
   FaStar,
   FaRegStar,
@@ -6,6 +5,9 @@ import {
   FaInfoCircle,
   FaCalendarAlt,
 } from "react-icons/fa";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchStarredIssues, toggleStarBackend } from "../redux/starredSlice";
+import { useState, useEffect } from "react";
 
 const IssueTable = ({
   issues,
@@ -15,8 +17,38 @@ const IssueTable = ({
   showDropdown = false,
   onStatusChange,
 }) => {
-  const location = useLocation();
+  const dispatch = useDispatch();
+  const token = localStorage.getItem("token");
+  const email = localStorage.getItem("email");
+  const [userId, setUserId] = useState(null);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const email = localStorage.getItem("email");
 
+    if (token && email) {
+      const fetchUserId = async () => {
+        try {
+          const res = await fetch("http://localhost:8080/user/id", {
+            headers: { Authorization: token, email },
+          });
+
+          const user = await res.json();
+          setUserId(user);
+          const userId = user;
+          dispatch(fetchStarredIssues({ userId, token, email }));
+        } catch (err) {
+          console.error("Error fetching userId", err);
+        }
+      };
+
+      fetchUserId();
+    }
+  }, []);
+
+  const toggleStar = (e, issueId) => {
+    e.stopPropagation();
+    dispatch(toggleStarBackend({ issueId, userId, token, email }));
+  };
   return (
     <table className="w-full text-left border-collapse">
       <thead>
@@ -59,7 +91,10 @@ const IssueTable = ({
             }}
             className="border-b border-gray-700 hover:bg-gray-700 transition cursor-pointer"
           >
-            <td className="p-4 w-12 text-center">
+            <td
+              onClick={(e) => toggleStar(e, issue.issueId)}
+              className="p-4 w-12 text-center"
+            >
               {issue.starred ? (
                 <FaStar
                   onClick={(e) => {
